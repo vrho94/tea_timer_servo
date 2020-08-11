@@ -66,30 +66,43 @@ void loop() {
 void servo_hight_adjustment() {
   if (digitalRead(gumb) == LOW) {
     char num_str_buf[4];
+    int buff_num;
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN (0,  8, "Nastavi visino(MAX):", STYLE_BOLD, 0.2);
     while (digitalRead(gumb) == LOW);
     delay(200);
     while (digitalRead(gumb) == HIGH) {
-      max_pos = read_encoder_state(max_pos);
-      if(max_pos<0)max_pos=0;
+     buff_num = read_encoder_state(max_pos);
+      if(max_pos!=buff_num){
+        max_pos=buff_num;
+        if(max_pos<0)max_pos=0;
       if(max_pos>180)max_pos=180;
+      Serial.print("max_pos: ");
+      Serial.println(max_pos);
+      servo.write(max_pos);}
     }
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN (0,  8, "Nastavi visino(MIN):", STYLE_BOLD, 0.2);
     while (digitalRead(gumb) == LOW);
     delay(200);
     while (digitalRead(gumb) == HIGH) {
-      min_pos = read_encoder_state(min_pos);
-      if(min_pos<0)min_pos=0;
+      buff_num = read_encoder_state(min_pos);
+      if(min_pos!=buff_num){
+        min_pos=buff_num;
+        if(min_pos<0)min_pos=0;
       if(min_pos>180)min_pos=180;
+      Serial.print("min_pos: ");
+      Serial.println(min_pos);
+      servo.write(min_pos);
+      }
+      
     }
     if (max_pos > 180)max_pos = 180;
     if (max_pos < 0)min_pos = 0;
     if (min_pos > 180)max_pos = 180;
     if (min_pos < 0)min_pos = 0;
     ssd1306_fillScreen(0x00);
-    ssd1306_printFixedN (0,  8, "Izhod!", STYLE_BOLD, 0.2);
+    ssd1306_printFixedN (0,  8, "Izhod VS test!", STYLE_BOLD, 0.2);
     ssd1306_printFixed (0,  16, "MAX:", STYLE_NORMAL);
     ssd1306_printFixed (0,  32, "MIN:", STYLE_NORMAL);
     ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 3), STYLE_NORMAL);
@@ -111,7 +124,7 @@ void set_timer() {
       minute = read_encoder_state(minute);
      // ssd1306_printFixed (40,  16, itoa(minute, num_str_buf, 4), STYLE_NORMAL);
     }
-    ssd1306_printFixedN (0,  8, "Izhod!", STYLE_BOLD, 0.2);
+    ssd1306_printFixedN (0,  8, "Izhod Vstest!", STYLE_BOLD, 0.2);
     ssd1306_printFixed (0,  16, "MAX:", STYLE_NORMAL);
     ssd1306_printFixed (0,  32, "MIN:", STYLE_NORMAL);
 //    ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 4), STYLE_NORMAL);
@@ -136,10 +149,10 @@ int read_encoder_state(int counter) {
       if (counter > 180)counter = 180;
       else counter --;
     }
-    Serial.print("Position: ");
-    Serial.println(counter);
+    //Serial.print("Position: ");
+    //Serial.println(counter);
     //ssd1306_drawProgressBar( counter/1.5 );
-    servo.write(counter);
+    //servo.write(counter);
   }
   aLastState = aState; // Updates the previous state of the outputA with the current state
   return counter;
