@@ -50,12 +50,16 @@ void setup() {
   //servo pin:
   servo.attach(servo_pin);
   //gumb
-  //pinMode(gumb, INPUT);
+  pinMode(gumb, INPUT_PULLUP);
 }
 
 //da se ne ukvarjas s prekinitvami uporab nizko vrednost za sestevalnika za eno sekundo... primer delay na 10ms(1000/10=100 proženj)
 int gumb_stanje;
 void loop() {
+  if(digitalRead(gumb)==LOW){
+    ssd1306_printFixedN (0,  8, "gumb dela!", STYLE_BOLD,0.2);
+    delay(1500);
+    }
   read_encoder_state();
 }
 
