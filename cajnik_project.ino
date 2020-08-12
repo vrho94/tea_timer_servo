@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <ssd1306_uart.h>
 #include <ssd1306_8bit.h>
 #include <nano_gfx_types.h>
@@ -38,6 +39,8 @@ int timer_addr_eeprom = 0; //naslov
 int max_pos = 0;
 int min_pos = 0;
 int minute = 0;
+//oled
+Ssd1306Console  console;
 void setup() {
   //oled
   ssd1306_128x64_i2c_init();
@@ -69,44 +72,28 @@ void servo_hight_adjustment() {
     int buff_num;
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN (0,  8, "Nastavi visino(MAX):", STYLE_BOLD, 0.2);
+    servo.write(max_pos);
     while (digitalRead(gumb) == LOW);
     delay(200);
     while (digitalRead(gumb) == HIGH) {
-     buff_num = read_encoder_state(max_pos);
-      if(max_pos!=buff_num){
-        max_pos=buff_num;
-        if(max_pos<0)max_pos=0;
-      if(max_pos>180)max_pos=180;
-      Serial.print("max_pos: ");
-      Serial.println(max_pos);
-      servo.write(max_pos);}
+      set_servo_max_height();
     }
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN (0,  8, "Nastavi visino(MIN):", STYLE_BOLD, 0.2);
+    servo.write(min_pos);
     while (digitalRead(gumb) == LOW);
     delay(200);
     while (digitalRead(gumb) == HIGH) {
-      buff_num = read_encoder_state(min_pos);
-      if(min_pos!=buff_num){
-        min_pos=buff_num;
-        if(min_pos<0)min_pos=0;
-      if(min_pos>180)min_pos=180;
-      Serial.print("min_pos: ");
-      Serial.println(min_pos);
-      servo.write(min_pos);
-      }
+      set_servo_min_height();
       
     }
-    if (max_pos > 180)max_pos = 180;
-    if (max_pos < 0)min_pos = 0;
-    if (min_pos > 180)max_pos = 180;
-    if (min_pos < 0)min_pos = 0;
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN (0,  8, "Izhod VS test!", STYLE_BOLD, 0.2);
     ssd1306_printFixed (0,  16, "MAX:", STYLE_NORMAL);
     ssd1306_printFixed (0,  32, "MIN:", STYLE_NORMAL);
-    ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 3), STYLE_NORMAL);
-    ssd1306_printFixed (40,  32, itoa(min_pos, num_str_buf, 3), STYLE_NORMAL);
+    ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 10), STYLE_NORMAL);
+    ssd1306_printFixed (40,  32, itoa(min_pos, num_str_buf, 10), STYLE_NORMAL);
+    Serial.print(max_pos);
 
     while (digitalRead(gumb) == LOW);
     delay(200);
@@ -124,7 +111,7 @@ void set_timer() {
       minute = read_encoder_state(minute);
      // ssd1306_printFixed (40,  16, itoa(minute, num_str_buf, 4), STYLE_NORMAL);
     }
-    ssd1306_printFixedN (0,  8, "Izhod Vstest!", STYLE_BOLD, 0.2);
+    ssd1306_printFixedN (0,  8, "Izhod!", STYLE_BOLD, 0.2);
     ssd1306_printFixed (0,  16, "MAX:", STYLE_NORMAL);
     ssd1306_printFixed (0,  32, "MIN:", STYLE_NORMAL);
 //    ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 4), STYLE_NORMAL);
@@ -157,6 +144,49 @@ int read_encoder_state(int counter) {
   aLastState = aState; // Updates the previous state of the outputA with the current state
   return counter;
 }
+//funkciji za nastavljanje visine
+void set_servo_max_height() {
+  if(max_pos<1)max_pos=0;
+  if(max_pos>180)max_pos=180;
+  aState = digitalRead(outputA); // Reads the "current" state of the outputA
+  // If the previous and the current state of the outputA are different, that means a Pulse has occured
+  if (aState != aLastState) {
+    // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+    if (digitalRead(outputB) != aState) {
+       max_pos ++;
+    } else {
+      max_pos --;
+    }
+    servo.write(max_pos);
+    Serial.print("max_pos: ");
+    Serial.println(max_pos);
+    //ssd1306_drawProgressBar( counter/1.5 );
+  }
+  aLastState = aState; // Updates the previous state of the outputA with the current state
+
+}
+
+void set_servo_min_height() {
+  aState = digitalRead(outputA); // Reads the "current" state of the outputA
+  // If the previous and the current state of the outputA are different, that means a Pulse has occured
+  if(min_pos<1)min_pos=0;
+  if(min_pos>180)min_pos=180;
+  if (aState != aLastState) {
+    // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+    if (digitalRead(outputB) != aState) {
+      min_pos ++;
+    } else {
+      min_pos --;
+    }
+    servo.write(min_pos);
+    Serial.print("min_pos: ");
+    Serial.println(min_pos);
+    //ssd1306_drawProgressBar( counter/1.5 );
+  }
+  aLastState = aState; // Updates the previous state of the outputA with the current state
+
+}
+
 void write_number_to_string_on_oled(int x, int y, int num, char string[]) {
   ssd1306_printFixed (x,  y, itoa(num, string, 4), STYLE_NORMAL);
 }
