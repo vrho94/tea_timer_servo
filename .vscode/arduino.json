@@ -1,7 +1,7 @@
 {
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328old",
-    "port": "/dev/tty.usbserial-14220",
+    "port": "/dev/tty.usbserial-14110",
     "programmer": "AVR ISP",
     "sketch": "cajnik_project.ino"
 }
