@@ -72,9 +72,9 @@ void loop()
 {
   //pogledaš ali se je spremenila vrednost meni_program
   meni_program = read_encoder_state(meni_program);
-  if (meni_program > 2)
+  if (meni_program > 1)
     meni_program = 2;
-  else if (meni_program < 1)
+  if (meni_program < 1)
     meni_program = 0;
   //ali je stara vrednost enaka trenutni?
   if (meni_program_old != meni_program)
@@ -105,15 +105,21 @@ void loop()
     switch (meni_program)
     {
     case 0:
+      ssd1306_fillScreen(0x00);
       ssd1306_printFixedN(0, 8, "Prozi timer:", STYLE_BOLD, 0.2);
       break;
     case 1:
       set_timer_size();
+      ssd1306_fillScreen(0x00);
+      ssd1306_printFixedN(0, 8, "Nastavi cas", STYLE_BOLD, 0.2);
       break;
     case 2:
       servo_hight_adjustment();
+      ssd1306_fillScreen(0x00);
+      ssd1306_printFixedN(0, 8, "Nastavi visino", STYLE_BOLD, 0.2);
       break;
     default:
+      ssd1306_fillScreen(0x00);
       ssd1306_printFixedN(0, 8, "Error", STYLE_BOLD, 0.2);
       break;
     }
@@ -121,7 +127,9 @@ void loop()
   //set_timer_size();
   //servo_hight_adjustment();
 }
-
+//###################################################################################
+//## Functions
+//###################################################################################
 void servo_hight_adjustment()
 {
   if (digitalRead(gumb) == LOW)
@@ -220,6 +228,7 @@ int read_encoder_state(int counter)
     }
   }
   aLastState = aState; // Updates the previous state of the outputA with the current state
+  delay(1);
   return counter;
 }
 //funkciji za nastavljanje visine
