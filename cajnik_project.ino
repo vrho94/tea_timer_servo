@@ -66,16 +66,57 @@ void setup()
 
 //da se ne ukvarjas s prekinitvami uporab nizko vrednost za sestevalnika za eno sekundo... primer delay na 10ms(1000/10=100 proženj)
 int gumb_stanje;
-int meni_program=0;//0-proži timer,1-nastavi čas,2-nastavi višino
-int meni_program_old=meni_program;
+int meni_program = 0; //0-proži timer,1-nastavi čas,2-nastavi višino
+int meni_program_old = meni_program;
 void loop()
 {
   //pogledaš ali se je spremenila vrednost meni_program
-  meni_program=read_encoder_state(meni_program);
+  meni_program = read_encoder_state(meni_program);
+  if (meni_program > 2)
+    meni_program = 2;
+  else if (meni_program < 1)
+    meni_program = 0;
   //ali je stara vrednost enaka trenutni?
-  if(meni_program_old!=meni_program){//ne
-    meni_program_old=meni_program;//zapisi novo vrednost
+  if (meni_program_old != meni_program)
+  {                                  //ne
+    meni_program_old = meni_program; //zapisi novo vrednost
     //prestavi na ustrezen program
+    ssd1306_fillScreen(0x00);
+    switch (meni_program)
+    {
+    case 0:
+      ssd1306_printFixedN(0, 8, "Prozi timer:", STYLE_BOLD, 0.2);
+      break;
+    case 1:
+      ssd1306_printFixedN(0, 8, "Nastavi cas", STYLE_BOLD, 0.2);
+      break;
+    case 2:
+      ssd1306_printFixedN(0, 8, "Nastavi visino", STYLE_BOLD, 0.2);
+      break;
+    default:
+      ssd1306_printFixedN(0, 8, "default", STYLE_BOLD, 0.2);
+      break;
+    }
+    delay(100);
+  }
+  if (digitalRead(gumb) == LOW)
+  {
+    delay(200);
+    switch (meni_program)
+    {
+    case 0:
+      ssd1306_printFixedN(0, 8, "Prozi timer:", STYLE_BOLD, 0.2);
+      break;
+    case 1:
+      set_timer_size();
+      break;
+    case 2:
+      servo_hight_adjustment();
+      break;
+    default:
+      ssd1306_printFixedN(0, 8, "Error", STYLE_BOLD, 0.2);
+      break;
+    }
   }
   //set_timer_size();
   //servo_hight_adjustment();
@@ -122,22 +163,24 @@ void servo_hight_adjustment()
 void set_timer_size()
 {
   char num_str_buf[4];
-  int timer_old_buff=timer_size;
+  int timer_old_buff = timer_size;
   if (digitalRead(gumb) == LOW)
   {
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN(0, 8, "Nastavi cas(min):", STYLE_BOLD, 0.2);
-    while (digitalRead(gumb) == LOW);//release the button
+    while (digitalRead(gumb) == LOW)
+      ; //release the button
     delay(200);
     while (digitalRead(gumb) == HIGH)
     {
       timer_size = read_encoder_state(timer_size);
-      if(timer_old_buff != timer_size){
-        timer_old_buff=timer_size;
-      ssd1306_printFixed(40, 16, "    ", STYLE_NORMAL);
-      ssd1306_printFixed(40, 16, itoa(timer_size, num_str_buf, 10), STYLE_NORMAL);
+      if (timer_old_buff != timer_size)
+      {
+        timer_old_buff = timer_size;
+        ssd1306_printFixed(40, 16, "    ", STYLE_NORMAL);
+        ssd1306_printFixed(40, 16, itoa(timer_size, num_str_buf, 10), STYLE_NORMAL);
       }
-       
+
       // ssd1306_printFixed (40,  16, itoa(timer_size, num_str_buf, 4), STYLE_NORMAL);
     }
     ssd1306_printFixedN(0, 8, "Izhod!", STYLE_BOLD, 0.2);
