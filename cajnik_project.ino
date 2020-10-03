@@ -45,13 +45,17 @@ int min_pos = EEPROM.read(servo_min_eeprom_address);
 int timer_size = EEPROM.read(timer_size_addr_eeprom_address);
 //oled
 Ssd1306Console console;
+//animacija height bar val
+
+
+
 void setup()
 {
   //oled
   ssd1306_128x64_i2c_init();
   ssd1306_fillScreen(0x00);
   ssd1306_setFixedFont(ssd1306xled_font6x8);
-  ssd1306_printFixed(0, 8, "Cajnik", STYLE_NORMAL);
+  ssd1306_printFixed2x(0, 8, "Cajnik", STYLE_NORMAL);
   //encoder
   pinMode(outputA, INPUT);
   pinMode(outputB, INPUT);
@@ -62,12 +66,19 @@ void setup()
   servo.attach(servo_pin);
   //gumb
   pinMode(gumb, INPUT_PULLUP);
+  //test----------------------------------------------------
+  
+  //test----------------------------------------------------
+
+
+
 }
 
 //da se ne ukvarjas s prekinitvami uporab nizko vrednost za sestevalnika za eno sekundo... primer delay na 10ms(1000/10=100 proženj)
 int gumb_stanje;
 int meni_program = 0; //0-proži timer,1-nastavi čas,2-nastavi višino
 int meni_program_old = meni_program;
+char menu_number_val_buff_oled[4];
 void loop()
 {
   //pogledaš ali se je spremenila vrednost meni_program
@@ -82,27 +93,28 @@ void loop()
     meni_program_old = meni_program; //zapisi novo vrednost
     //prestavi na ustrezen program
     ssd1306_fillScreen(0x00);
-    switch (meni_program)
+    switch (meni_program)///////////////////////////////////////////////////////////////////////////////////////
     {
     case 0:
-      ssd1306_printFixedN(0, 8, "Prozi timer:", STYLE_BOLD, 0.2);
+      ssd1306_printFixed(0, 8, "Prozi     timer:", STYLE_BOLD);
       break;
     case 1:
-      ssd1306_printFixedN(0, 8, "Nastavi cas", STYLE_BOLD, 0.2);
+      ssd1306_printFixed(0, 8, "Nastavi   cas:", STYLE_BOLD);
+      ssd1306_printFixed(56, 16, "    min", STYLE_BOLD);
+      ssd1306_printFixed(56, 16, itoa(timer_size, menu_number_val_buff_oled, 10), STYLE_BOLD);
       break;
     case 2:
-      ssd1306_printFixedN(0, 8, "Nastavi visino", STYLE_BOLD, 0.2);
+      ssd1306_printFixed(0, 8, "Nastavi   visino", STYLE_BOLD);
       break;
     default:
-      ssd1306_printFixedN(0, 8, "default", STYLE_BOLD, 0.2);
+      ssd1306_printFixedN(0, 8, "Napaka!", STYLE_BOLD, 0.2);
       break;
     }
-    delay(100);
   }
   if (digitalRead(gumb) == LOW)
   {
     delay(200);
-    switch (meni_program)
+    switch (meni_program)//////////////////////////////////////////////////
     {
     case 0:
       ssd1306_fillScreen(0x00);
@@ -111,7 +123,9 @@ void loop()
     case 1:
       set_timer_size();
       ssd1306_fillScreen(0x00);
-      ssd1306_printFixedN(0, 8, "Nastavi cas", STYLE_BOLD, 0.2);
+      ssd1306_printFixedN(0, 8, "Nastavi cas:", STYLE_BOLD, 0.2);
+      ssd1306_printFixedN(50, 16, "    min", STYLE_BOLD, 0.2);
+      ssd1306_printFixedN(40, 16, itoa(timer_size, menu_number_val_buff_oled, 10), STYLE_BOLD, 0.2);
       break;
     case 2:
       servo_hight_adjustment();
@@ -134,6 +148,7 @@ void servo_hight_adjustment()
 {
   if (digitalRead(gumb) == LOW)
   {
+    ssd1306_invertMode();
     char num_str_buf[4];
     int buff_num;
     ssd1306_fillScreen(0x00);
@@ -158,13 +173,14 @@ void servo_hight_adjustment()
     }
     ssd1306_fillScreen(0x00);
     ssd1306_printFixedN(0, 8, "Izhod VS test!", STYLE_BOLD, 0.2);
-    ssd1306_printFixed(40, 16, itoa(max_pos, num_str_buf, 10), STYLE_NORMAL);
-    ssd1306_printFixed(40, 32, itoa(min_pos, num_str_buf, 10), STYLE_NORMAL);
+    ssd1306_printFixed(40, 16, itoa(max_pos, num_str_buf, 10), STYLE_BOLD);
+    ssd1306_printFixed(40, 32, itoa(min_pos, num_str_buf, 10), STYLE_BOLD);
     Serial.print(max_pos);
 
     while (digitalRead(gumb) == LOW)
       ;
     delay(200);
+    ssd1306_normalMode();
   }
 }
 
@@ -174,8 +190,11 @@ void set_timer_size()
   int timer_old_buff = timer_size;
   if (digitalRead(gumb) == LOW)
   {
+    ssd1306_invertMode();
     ssd1306_fillScreen(0x00);
-    ssd1306_printFixedN(0, 8, "Nastavi cas(min):", STYLE_BOLD, 0.2);
+    ssd1306_printFixedN(0, 8, "Nastavi cas:", STYLE_BOLD, 0.8);
+    ssd1306_printFixedN(40, 16, "    min", STYLE_BOLD, 1.2);
+    ssd1306_printFixedN(40, 16, itoa(timer_size, num_str_buf, 10), STYLE_BOLD, 1.2);
     while (digitalRead(gumb) == LOW)
       ; //release the button
     delay(200);
@@ -185,21 +204,19 @@ void set_timer_size()
       if (timer_old_buff != timer_size)
       {
         timer_old_buff = timer_size;
-        ssd1306_printFixed(40, 16, "    ", STYLE_NORMAL);
-        ssd1306_printFixed(40, 16, itoa(timer_size, num_str_buf, 10), STYLE_NORMAL);
+        ssd1306_printFixedN(40, 16, "    min", STYLE_BOLD, 1.2);
+        ssd1306_printFixedN(40, 16, itoa(timer_size, num_str_buf, 10), STYLE_BOLD, 1.2);
       }
 
       // ssd1306_printFixed (40,  16, itoa(timer_size, num_str_buf, 4), STYLE_NORMAL);
     }
-    ssd1306_printFixedN(0, 8, "Izhod!", STYLE_BOLD, 0.2);
-    ssd1306_printFixed(0, 16, "MAX:", STYLE_NORMAL);
-    ssd1306_printFixed(0, 32, "MIN:", STYLE_NORMAL);
     //    ssd1306_printFixed (40,  16, itoa(max_pos, num_str_buf, 4), STYLE_NORMAL);
     //   ssd1306_printFixed (40,  32, itoa(min_pos, num_str_buf, 4), STYLE_NORMAL);
 
     while (digitalRead(gumb) == LOW)
       ;
     delay(200);
+    ssd1306_normalMode();
   }
   //če je stanje drugačno kot prej preglej ali se timer_size povečuje ali manjša
   //se prav da je a signal pred bjom-se veča in obratno se man
@@ -214,17 +231,25 @@ int read_encoder_state(int counter)
     // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
     if (digitalRead(outputB) != aState)
     {
-      if (counter < 0)
-        counter = 0;
-      else
-        counter++;
-    }
-    else
-    {
       if (counter > 180)
         counter = 180;
       else
         counter--;
+      /*if (counter < 0)
+        counter = 0;
+      else
+        counter++;*/
+    }
+    else
+    {
+      if (counter < 0)
+        counter = 0;
+      else
+        counter++;
+      /*if (counter > 180)
+        counter = 180;
+      else
+        counter--;*/
     }
   }
   aLastState = aState; // Updates the previous state of the outputA with the current state
@@ -288,5 +313,5 @@ void set_servo_min_height()
 
 void write_number_to_string_on_oled(int x, int y, int num, char string[])
 {
-  ssd1306_printFixed(x, y, itoa(num, string, 4), STYLE_NORMAL);
+  ssd1306_printFixed(x, y, itoa(num, string, 4), STYLE_BOLD);
 }
